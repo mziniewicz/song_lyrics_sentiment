@@ -78,6 +78,7 @@ env/
 *.pt
 *.pth
 *.onnx
+*.xlsx
 models/
 cache/
 *.tar
