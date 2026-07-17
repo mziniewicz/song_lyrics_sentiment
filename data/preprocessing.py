@@ -16,3 +16,37 @@ df["lyrics"] = (
     .str.replace(r"\s+", " ", regex=True)    # usunięcię nadmiarowych spacji
     .str.strip()                             # usunięcie spacji z początku i końca
 )
+
+# funkcja dzieląca tekst na mniejsze fragmenty o określonej liczbie tokenów
+
+def split_into_chunks(text, tokenizer,
+                      max_tokens=510,
+                      overlap=50):
+
+    token_ids = tokenizer.encode(
+        text,
+        add_special_tokens=False
+    )
+
+    chunks = []
+
+    step = max_tokens - overlap
+
+    for i in range(0, len(token_ids), step):
+
+        chunk = token_ids[i:i + max_tokens]
+
+        if len(chunk) == 0:
+            break
+
+        chunks.append(
+            tokenizer.decode(
+                chunk,
+                skip_special_tokens=True
+            )
+        )
+
+        if i + max_tokens >= len(token_ids):
+            break
+
+    return chunks
