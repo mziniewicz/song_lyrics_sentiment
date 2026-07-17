@@ -79,7 +79,6 @@ env/
 *.pth
 *.onnx
 *.xlsx
-models/
 cache/
 *.tar
 *.tar.gz
