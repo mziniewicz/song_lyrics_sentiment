@@ -50,5 +50,3 @@ def sentiment(text):
         )
 
     return sum(scores) / len(scores)
-
-print("klasa")

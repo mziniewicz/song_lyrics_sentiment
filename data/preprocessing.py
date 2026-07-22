@@ -1,4 +1,6 @@
 import pandas as pd
+import re
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 df = pd.read_csv('data/topSongsLyrics1950_2019.csv') # wczytanie danych z pliku CSV do DataFrame
 
@@ -50,3 +52,25 @@ def split_into_chunks(text, tokenizer,
             break
 
     return chunks
+
+def prepare_for_bertopic(df):
+
+    df = df.copy()
+
+    def clean(text):
+
+        text = text.lower()
+
+        # pozostaw tylko litery i spacje
+        text = re.sub(r"[^a-z\s]", " ", text)
+
+        # usuń wielokrotne spacje
+        text = re.sub(r"\s+", " ", text).strip()
+
+        return text
+
+    df["lyrics_topics"] = df["lyrics"].apply(clean)
+
+    return df
+
+df = prepare_for_bertopic(df)
