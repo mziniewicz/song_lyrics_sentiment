@@ -1,1 +1,1 @@
-from .preprocessing import df, split_into_chunks
+from .preprocessing import df
