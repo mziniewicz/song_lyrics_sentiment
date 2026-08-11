@@ -1,5 +1,4 @@
 import pandas as pd
-import re
 
 df = pd.read_csv('data/topSongsLyrics1950_2019.csv') # wczytanie danych z pliku CSV do DataFrame
 
