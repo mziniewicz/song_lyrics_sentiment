@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 df = pd.read_csv('data/topSongsLyrics1950_2019.csv') # wczytanie danych z pliku CSV do DataFrame
 
@@ -21,56 +20,25 @@ df["lyrics"] = (
 
 # funkcja dzieląca tekst na mniejsze fragmenty o określonej liczbie tokenów
 
-def split_into_chunks(text, tokenizer,
-                      max_tokens=510,
-                      overlap=50):
-
+def split_into_chunks(text, tokenizer, max_tokens=510):
     token_ids = tokenizer.encode(
         text,
         add_special_tokens=False
     )
 
+    if not token_ids:
+        return []
+
     chunks = []
 
-    step = max_tokens - overlap
+    for start in range(0, len(token_ids), max_tokens):
+        chunk_ids = token_ids[start:start + max_tokens]
 
-    for i in range(0, len(token_ids), step):
-
-        chunk = token_ids[i:i + max_tokens]
-
-        if len(chunk) == 0:
-            break
-
-        chunks.append(
-            tokenizer.decode(
-                chunk,
-                skip_special_tokens=True
-            )
+        chunk = tokenizer.decode(
+            chunk_ids,
+            skip_special_tokens=True
         )
 
-        if i + max_tokens >= len(token_ids):
-            break
+        chunks.append(chunk)
 
     return chunks
-
-def prepare_for_bertopic(df):
-
-    df = df.copy()
-
-    def clean(text):
-
-        text = text.lower()
-
-        # pozostaw tylko litery i spacje
-        text = re.sub(r"[^a-z\s]", " ", text)
-
-        # usuń wielokrotne spacje
-        text = re.sub(r"\s+", " ", text).strip()
-
-        return text
-
-    df["lyrics_topics"] = df["lyrics"].apply(clean)
-
-    return df
-
-df = prepare_for_bertopic(df)
