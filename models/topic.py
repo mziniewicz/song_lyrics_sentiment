@@ -1,10 +1,10 @@
 import numpy as np
 from bertopic import BERTopic
+from bertopic.vectorizers import ClassTfidfTransformer
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
 from hdbscan import HDBSCAN
 from umap import UMAP
-
 
 class TopicAnalyzer:
 
@@ -55,6 +55,10 @@ class TopicAnalyzer:
             max_df=0.5
         )
 
+        ctfidf_model = ClassTfidfTransformer(
+            reduce_frequent_words=True
+        )
+
         # Reprodukowalna redukcja wymiarów
         umap_model = UMAP(
             n_neighbors=15,
@@ -79,19 +83,20 @@ class TopicAnalyzer:
             vectorizer_model=vectorizer_model,
             umap_model=umap_model,
             hdbscan_model=hdbscan_model,
+            ctfidf_model=ctfidf_model,
             calculate_probabilities=True,
             verbose=True
         )
 
         self.document_embeddings_ = None
 
-
     def _split_into_chunks(self, text):
 
         token_ids = self.tokenizer.encode(
             text,
             add_special_tokens=False,
-            truncation=False
+            truncation=False,
+            verbose=False
         )
 
         if len(token_ids) == 0:
@@ -120,16 +125,7 @@ class TopicAnalyzer:
 
         return chunks, chunk_lengths
 
-
     def create_embeddings(self, texts):
-        """
-        Tworzy jeden embedding dla każdego utworu.
-
-        Jeśli tekst przekracza limit modelu:
-        1. dzieli go na chunki,
-        2. tworzy embedding każdego chunka,
-        3. łączy embeddingi średnią ważoną długością chunków.
-        """
 
         texts = list(texts)
 
@@ -151,7 +147,7 @@ class TopicAnalyzer:
             all_chunks.extend(chunks)
             document_chunk_lengths.append(lengths)
 
-        # Tworzymy embeddingi wszystkich chunków
+        # Tworzenie embeddingów wszystkich fragmentów
         chunk_embeddings = self.embedding_model.encode(
             all_chunks,
             batch_size=self.batch_size,
@@ -164,7 +160,7 @@ class TopicAnalyzer:
 
         position = 0
 
-        # Łączymy embeddingi chunków do jednego embeddingu utworu
+        # Łączenie embeddingów fragmentów do jednego embeddingu utworu
         for lengths in document_chunk_lengths:
 
             number_of_chunks = len(lengths)
@@ -217,7 +213,6 @@ class TopicAnalyzer:
 
         return topics, probabilities
 
-
     # Przypisanie tematów nowym tekstom
     def transform(self, texts):
 
@@ -232,36 +227,30 @@ class TopicAnalyzer:
 
         return topics, probabilities
 
-
     # Tabela wszystkich tematów
     def get_topic_info(self):
 
         return self.model.get_topic_info()
-
 
     # Słowa opisujące konkretny temat
     def get_topic(self, topic_id):
 
         return self.model.get_topic(topic_id)
 
-
     # Wizualizacja tematów
     def visualize_topics(self):
 
         return self.model.visualize_topics()
-
 
     # Wizualizacja słów w tematach
     def visualize_barchart(self):
 
         return self.model.visualize_barchart()
 
-
     # Zapis modelu
     def save(self, path):
 
         self.model.save(path)
-
 
     # Wczytanie wcześniej zapisanego modelu
     @classmethod
