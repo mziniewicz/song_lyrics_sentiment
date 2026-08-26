@@ -89,3 +89,4 @@ Thumbs.db
 .DS_Store
 
 visualizations/
+models/bertopic_model
