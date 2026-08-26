@@ -1,10 +1,19 @@
 import numpy as np
+import re
 from bertopic import BERTopic
 from bertopic.vectorizers import ClassTfidfTransformer
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
 from hdbscan import HDBSCAN
 from umap import UMAP
+
+def remove_repeated_words(text):
+    return re.sub(
+        r"\b(\w+)(?:\s+\1\b)+",
+        r"\1",
+        text,
+        flags=re.IGNORECASE
+    )
 
 class TopicAnalyzer:
 
@@ -13,7 +22,8 @@ class TopicAnalyzer:
         min_cluster_size=20,
         min_samples=1,
         random_state=42,
-        batch_size=32
+        batch_size=32,
+        cluster_selection_method="eom"
     ):
 
         # Model do tworzenia embeddingów tekstu
@@ -39,6 +49,7 @@ class TopicAnalyzer:
             "woo", "ha", "doo", "dum", "bum",
             "sha", "mmm", "mm", "ohh", "da",
             "bop", "lo", "umm", "nah", "hoo",
+            "ayy", "di", "yah", "ba", "ya", "ha", "eh",
 
             # Fragmenty kontrakcji
             "don", "doesn", "didn", "isn", "aren",
@@ -50,6 +61,7 @@ class TopicAnalyzer:
 
         vectorizer_model = CountVectorizer(
             stop_words=custom_stopwords,
+            preprocessor=remove_repeated_words,
             ngram_range=(1, 2),
             min_df=2,
             max_df=0.5
@@ -73,7 +85,7 @@ class TopicAnalyzer:
             min_cluster_size=min_cluster_size,
             min_samples=min_samples,
             metric="euclidean",
-            cluster_selection_method="eom",
+            cluster_selection_method=cluster_selection_method,
             prediction_data=True
         )
 
@@ -85,7 +97,8 @@ class TopicAnalyzer:
             hdbscan_model=hdbscan_model,
             ctfidf_model=ctfidf_model,
             calculate_probabilities=True,
-            verbose=True
+            verbose=True,
+            top_n_words=20
         )
 
         self.document_embeddings_ = None

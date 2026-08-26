@@ -87,3 +87,5 @@ cache/
 # OS
 Thumbs.db
 .DS_Store
+
+visualizations/
